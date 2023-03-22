@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center"><b>kbtls</b></h1>
-  <p align="center"><i></i></p>
+  <p align="center"><i><b>K</b>ey-<b>B</b>ased <b>TLS</b> - Mutually Trusted TLS Connections Based on a Pre-Shared Connection Key</i></p>
   <p align="center">
     <a href="https://github.com/RedTeamPentesting/kbtls/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/RedTeamPentesting/kbtls.svg?style=for-the-badge"></a>
     <a href="https://pkg.go.dev/github.com/RedTeamPentesting/kbtls"><img alt="Go Doc" src="https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge"></a>
