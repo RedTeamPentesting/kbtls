@@ -12,12 +12,14 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"net"
 	"time"
 )
 
 // ConnectionKey is a seed for an ed25519 private key with which the fundamental
-// CA certificate is signed. The all-zero connection key is considered invalid.
-// Due to the fixed size, connection keys are comparable.
+// CA certificate is signed. The all-zero connection key is considered invalid
+// in order to avoid accidentally using an uninitialized key. Due to the fixed
+// size, connection keys are comparable.
 type ConnectionKey [ed25519.SeedSize]byte
 
 // ParseConnectionKey parses a base64-encoded connection key.
@@ -246,6 +248,36 @@ func ClientTLSConfigForClientName(key ConnectionKey, clientName string) (*tls.Co
 	}
 
 	return cfg, nil
+}
+
+// Dial works like tls.Dial with a TLS config based on the provided connection key.
+func Dial(network string, address string, connectionKey string) (net.Conn, error) {
+	key, err := ParseConnectionKey(connectionKey)
+	if err != nil {
+		return nil, fmt.Errorf("parse connection key: %w", err)
+	}
+
+	tlsConfig, err := ClientTLSConfig(key)
+	if err != nil {
+		return nil, fmt.Errorf("generate client TLS config: %w", err)
+	}
+
+	return tls.Dial(network, address, tlsConfig)
+}
+
+// Listen works like tls.Listen with a TLS config based on the provided connection key.
+func Listen(network string, address, connectionKey string) (net.Listener, error) {
+	key, err := ParseConnectionKey(connectionKey)
+	if err != nil {
+		return nil, fmt.Errorf("parse connection key: %w", err)
+	}
+
+	tlsConfig, err := ServerTLSConfig(key)
+	if err != nil {
+		return nil, fmt.Errorf("generate server TLS config: %w", err)
+	}
+
+	return tls.Listen(network, address, tlsConfig)
 }
 
 func checkKeyBytes(key []byte) error {

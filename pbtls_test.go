@@ -125,21 +125,28 @@ func TestClientServerConfigCompatibility(t *testing.T) {
 	testData := []byte("test")
 
 	go func() {
-		tls.Server(pipeA, serverConfig).Write(testData) //nolint:errcheck,gosec
+		server := tls.Server(pipeA, serverConfig)
+		defer server.Close() //nolint:errcheck
+
+		_, err := server.Write(testData)
+		if err != nil {
+			t.Errorf("write: %v", err)
+		}
+
 		close(wait)
 	}()
 
 	conn := tls.Client(pipeB, clientConfig)
 
-	readData := make([]byte, len(testData))
+	receivedData := make([]byte, len(testData))
 
-	_, err = conn.Read(readData)
+	n, err := conn.Read(receivedData)
 	if err != nil {
 		t.Fatalf("read: %v", err)
 	}
 
-	if !bytes.Equal(readData, testData) {
-		t.Fatalf("received %q instead of %q", string(readData), string(testData))
+	if !bytes.Equal(receivedData[:n], testData) {
+		t.Fatalf("received %q instead of %q", string(receivedData), string(testData))
 	}
 }
 
@@ -180,11 +187,16 @@ func TestClientServerErrorIfKeyAndNameDiffers(t *testing.T) {
 	testData := []byte("test")
 
 	go func() {
-		tls.Server(pipeA, serverConfig).Write(testData) //nolint:errcheck,gosec
+		_, err := tls.Server(pipeA, serverConfig).Write(testData)
+		if err == nil {
+			t.Errorf("sending data to client did not return an error")
+		}
+
 		close(wait)
 	}()
 
 	conn := tls.Client(pipeB, clientConfig)
+	defer conn.Close() //nolint:errcheck
 
 	readData := make([]byte, len(testData))
 
@@ -233,7 +245,11 @@ func TestClientServerErrorIfKeyDiffers(t *testing.T) {
 	testData := []byte("test")
 
 	go func() {
-		tls.Server(pipeA, serverConfig).Write(testData) //nolint:errcheck,gosec
+		_, err := tls.Server(pipeA, serverConfig).Write(testData)
+		if err == nil {
+			t.Errorf("sending data to client did not return an error")
+		}
+
 		close(wait)
 	}()
 
@@ -263,5 +279,58 @@ func TestConnectionKeyInvalid(t *testing.T) {
 
 	if key.Valid() {
 		t.Fatalf("all-zero connections key reports that it is valid")
+	}
+}
+
+func TestDialListen(t *testing.T) {
+	key, err := GenerateConnectionKey()
+	if err != nil {
+		t.Fatalf("generate connection key: %v", err)
+	}
+
+	listener, err := Listen("tcp", "localhost:0", key.String())
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	testData := []byte("test")
+
+	wait := make(chan struct{})
+	defer func() { <-wait }()
+
+	go func() {
+		defer close(wait)
+
+		conn, err := Dial("tcp", listener.Addr().String(), key.String())
+		if err != nil {
+			t.Errorf("dial: %v", err)
+
+			return
+		}
+
+		defer conn.Close() //nolint:errcheck,gosec
+
+		_, err = conn.Write(testData)
+		if err != nil {
+			t.Errorf("write: %v", err)
+		}
+	}()
+
+	conn, err := listener.Accept()
+	if err != nil {
+		t.Fatalf("accept: %v", err)
+	}
+
+	defer conn.Close() //nolint:errcheck,gosec
+
+	receivedData := make([]byte, len(testData))
+
+	n, err := conn.Read(receivedData)
+	if err != nil {
+		t.Fatalf("read: %v", err)
+	}
+
+	if !bytes.Equal(receivedData[:n], testData) {
+		t.Fatalf("received %q instead of %q", string(receivedData), string(testData))
 	}
 }
