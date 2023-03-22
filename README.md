@@ -50,7 +50,7 @@ then passes the generated key to the other endpoint where it can be used as
 follows:
 
 ```go
-key := "sN5EbxYscr15fGxa8Mx2NeelZUCpn0"
+key := "tvyFtKR0Y2IY/sN5EbxYscr15fGxa8Mx2NeelZUCpn0"
 conn, err := kbtls.Dial("tcp", "localhost:8443", key)
 // error handling
 ```
