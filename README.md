@@ -18,7 +18,7 @@ connection key can be used on both sides to derive the same CA certificate which
 is then used to sign the server and client certificates that are generated on
 the spot.
 
-![resocks TLS setup](assets/cert_derivation.png)
+![TLS setup](assets/cert_derivation.png)
 
 ---
 
