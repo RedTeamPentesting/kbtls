@@ -116,8 +116,8 @@ func TestClientServerConfigCompatibility(t *testing.T) {
 	wait := make(chan struct{})
 
 	pipeA, pipeB := net.Pipe()
-	defer pipeA.Close() //nolint:errcheck,gosec
-	defer pipeB.Close() //nolint:errcheck,gosec
+	defer pipeA.Close() //nolint:errcheck
+	defer pipeB.Close() //nolint:errcheck
 	defer func() {
 		<-wait
 	}()
@@ -178,8 +178,8 @@ func TestClientServerErrorIfKeyAndNameDiffers(t *testing.T) {
 	wait := make(chan struct{})
 
 	pipeA, pipeB := net.Pipe()
-	defer pipeA.Close() //nolint:errcheck,gosec
-	defer pipeB.Close() //nolint:errcheck,gosec
+	defer pipeA.Close() //nolint:errcheck
+	defer pipeB.Close() //nolint:errcheck
 	defer func() {
 		<-wait
 	}()
@@ -236,8 +236,8 @@ func TestClientServerErrorIfKeyDiffers(t *testing.T) {
 	wait := make(chan struct{})
 
 	pipeA, pipeB := net.Pipe()
-	defer pipeA.Close() //nolint:errcheck,gosec
-	defer pipeB.Close() //nolint:errcheck,gosec
+	defer pipeA.Close() //nolint:errcheck
+	defer pipeB.Close() //nolint:errcheck
 	defer func() {
 		<-wait
 	}()
@@ -308,7 +308,7 @@ func TestDialListen(t *testing.T) {
 			return
 		}
 
-		defer conn.Close() //nolint:errcheck,gosec
+		defer conn.Close() //nolint:errcheck
 
 		_, err = conn.Write(testData)
 		if err != nil {
@@ -321,7 +321,7 @@ func TestDialListen(t *testing.T) {
 		t.Fatalf("accept: %v", err)
 	}
 
-	defer conn.Close() //nolint:errcheck,gosec
+	defer conn.Close() //nolint:errcheck
 
 	receivedData := make([]byte, len(testData))
 

@@ -2,6 +2,7 @@
 package kbtls
 
 import (
+	"context"
 	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
@@ -252,6 +253,11 @@ func ClientTLSConfigForClientName(key ConnectionKey, clientName string) (*tls.Co
 
 // Dial works like tls.Dial with a TLS config based on the provided connection key.
 func Dial(network string, address string, connectionKey string) (net.Conn, error) {
+	return DialContext(context.Background(), network, address, connectionKey)
+}
+
+// DialContext works like tls.Dial with a TLS config based on the provided connection key and a context.
+func DialContext(ctx context.Context, network string, address string, connectionKey string) (net.Conn, error) {
 	key, err := ParseConnectionKey(connectionKey)
 	if err != nil {
 		return nil, fmt.Errorf("parse connection key: %w", err)
@@ -262,7 +268,9 @@ func Dial(network string, address string, connectionKey string) (net.Conn, error
 		return nil, fmt.Errorf("generate client TLS config: %w", err)
 	}
 
-	return tls.Dial(network, address, tlsConfig)
+	dialer := tls.Dialer{Config: tlsConfig}
+
+	return dialer.DialContext(ctx, network, address)
 }
 
 // Listen works like tls.Listen with a TLS config based on the provided connection key.
